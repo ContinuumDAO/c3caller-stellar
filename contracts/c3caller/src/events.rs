@@ -1,4 +1,4 @@
-use soroban_sdk::{Address, Bytes, BytesN, Env, String, Symbol, Vec};
+use soroban_sdk::{Address, Bytes, BytesN, Env, String, Symbol, Val, Vec};
 
 #[derive(Clone, Debug)]
 pub struct LogC3CallEvent {
@@ -62,7 +62,7 @@ pub struct LogExecCallEvent {
     pub uuid: BytesN<32>,
     pub from_chain_id: String,
     pub source_tx: String,
-    pub data: Bytes,
+    pub data: Vec<Val>,
     pub success: bool,
     pub reason: Bytes,
 }

@@ -89,7 +89,7 @@ impl C3UUIDKeeper {
         }
         let mut completed_swapin = Self::get_completed_swapin(&env);
         completed_swapin.set(uuid, true);
-        env.storage().instance().set(&COMPLETED_SWAPIN, &completed_swapin);
+        env.storage().persistent().set(&COMPLETED_SWAPIN, &completed_swapin);
     }
 
     pub fn gen_uuid(

@@ -3,7 +3,7 @@ mod test {
     use crate::uuid_keeper::C3UUIDKeeper;
 
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Address, Bytes, Symbol};
+    use soroban_sdk::{testutils::Address as _, vec, Address, Bytes, BytesN, Symbol};
 
     #[test]
     fn test_basic_flow() {

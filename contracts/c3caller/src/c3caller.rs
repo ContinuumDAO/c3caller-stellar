@@ -1,5 +1,5 @@
 use soroban_sdk::{
-    contract, contractimpl, log, symbol_short, Address, Bytes, BytesN, Env, IntoVal, Map, String, Symbol, TryFromVal, Val, Vec
+    contract, contractimpl, log, symbol_short, vec, Address, Bytes, BytesN, Env, IntoVal, Map, String, Symbol, TryFromVal, Val, Vec
 };
 
 use crate::events::{LogC3CallEvent, LogExecCallEvent};
@@ -184,7 +184,7 @@ impl C3Caller {
         // Check if UUID is already completed
         let is_completed: bool = env.invoke_contract(
             &uuid_keeper,
-            "is_completed",
+            &Symbol::new(&env,"is_completed"),
             vec![&env, message.uuid.clone().into_val(&env)],
         );
 

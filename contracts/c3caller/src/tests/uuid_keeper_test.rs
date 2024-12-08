@@ -1,7 +1,9 @@
 #[cfg(test)]
 mod test {
+    use crate::uuid_keeper::C3UUIDKeeper;
+
     use super::*;
-    use soroban_sdk::testutils::Address as _;
+    use soroban_sdk::{testutils::Address as _, Address, Bytes, Symbol};
 
     #[test]
     fn test_basic_flow() {

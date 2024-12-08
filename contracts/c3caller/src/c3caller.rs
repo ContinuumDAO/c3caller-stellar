@@ -1,5 +1,5 @@
 use soroban_sdk::{
-    contract, contractimpl, log, symbol_short, vec, Address, Bytes, BytesN, Env, IntoVal, Map, String, Symbol, TryFromVal, Val, Vec
+    contract, contractimpl, log, symbol_short, vec, Address, Bytes, BytesN, Env, FromVal, IntoVal, Map, String, Symbol, TryFromVal, Val, Vec
 };
 
 use crate::events::{LogC3CallEvent, LogExecCallEvent};
@@ -22,6 +22,8 @@ pub struct C3StellarMessage {
     from_chain_id: String,
     source_tx: String,
 }
+
+
 
 #[contract]
 pub struct C3Caller;
@@ -94,7 +96,7 @@ impl C3Caller {
         // Generate UUID through keeper contract
         let uuid: BytesN<32> = env.invoke_contract(
             &uuid_keeper,
-            "gen_uuid",
+            &Symbol::new(&env,"gen_uuid"),
             vec![
                 &env,
                 dapp_id.into_val(&env),
@@ -135,14 +137,15 @@ impl C3Caller {
         if data.len() == 0 { panic!("C3Caller: empty calldata"); }
         if to.len() != to_chain_ids.len() { panic!("C3Caller: tochains length mismatch"); }
 
-        let uuid_keeper: Address = env.storage().instance().get(&UUID_KEEPER).unwrap();
+        let uuid_keeper: Address = env.storage().persistent().get(&UUID_KEEPER).unwrap();
         let empty_extra = Bytes::new(&env);
 
         // Process each destination
         for i in 0..to.len() {
+          
             let uuid: BytesN<32> = env.invoke_contract(
                 &uuid_keeper,
-                "gen_uuid",
+               &Symbol::new(&env, "gen_uuid"),
                 vec![
                     &env,
                     dapp_id.into_val(&env),
@@ -156,10 +159,10 @@ impl C3Caller {
             LogC3CallEvent::emit(&env, &LogC3CallEvent {
                 dapp_id,
                  uuid,
-                  caller,
+                  caller: caller.clone(),
                    to_chain_id:to_chain_ids.get(i).unwrap(), 
                    to:to.get(i).unwrap(), 
-                   data, 
+                   data:data.clone(), 
                    extra:Bytes::new(&env),
                 });
         }
@@ -196,13 +199,10 @@ impl C3Caller {
         // Execute the call (simplified as Soroban has different call mechanics)
         // In reality, this would need to be adapted to Soroban's cross-contract call patterns
         
-       
-
-        
         let reason = env.invoke_contract(
             &message.to,
              &message.func, 
-             message.data
+            message.data.clone()
             );
 
             

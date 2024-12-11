@@ -1,7 +1,5 @@
 use soroban_sdk::{
-    contract, contractimpl, symbol_short,
-    Address, Bytes, BytesN, Env, Symbol, Vec, Map,
-    IntoVal, TryFromVal, log
+    contract, contractimpl, log, symbol_short, xdr::ToXdr, Address, Bytes, BytesN, Env, IntoVal, Map, String, Symbol, TryFromVal, Vec
 };
 
 
@@ -95,44 +93,58 @@ impl C3UUIDKeeper {
     pub fn gen_uuid(
         env: Env,
         dapp_id: u64,
-        to: Symbol,
-        to_chain_id: Symbol,
+        to: String,
+        to_chain_id: String,
         data: Bytes,
     ) -> BytesN<32> {
         Self::check_operator(&env);
         let nonce = Self::increase_nonce(&env);
+          
+          let mut  concat = Bytes::new(&env);
+          concat.append(&env.current_contract_address().to_xdr(&env));
+          concat.append(&env.ledger().network_id().to_xdr(&env));
+          concat.append(&dapp_id.to_be_bytes().to_xdr(&env));
+          concat.append(&to.to_xdr(&env));
+          concat.append(&to_chain_id.to_xdr(&env));
+          concat.append(&nonce.to_be_bytes().to_xdr(&env));
+          concat.append(&data);
+
         
-        // Create input for hash
+         let uuid = env.crypto().sha256(&concat).to_bytes();
+         
+
+        if Self::is_uuid_exist(env.clone(), uuid.clone()) {
+             panic!("UUID already exist")
+        }
         
 
         let mut uuid_to_nonce = Self::get_uuid_to_nonce(&env);
-        uuid_to_nonce.set(uuid, nonce);
+        uuid_to_nonce.set(uuid.clone(), nonce);
         env.storage().persistent().set(&UUID_TO_NONCE, &uuid_to_nonce);
-
         uuid
     }
 
     
-    pub fn calc_caller_uuid(
-        env: Env,
-        from: Address,
-        dapp_id: u64,
-        to: Symbol,
-        to_chain_id: Symbol,
-        data: Bytes,
-    ) -> BytesN<32> {
-        let nonce: u64 = env.storage().instance().get(&CURRENT_NONCE).unwrap() + 1;
+    // pub fn calc_caller_uuid(
+    //     env: Env,
+    //     from: Address,
+    //     dapp_id: u64,
+    //     to: Symbol,
+    //     to_chain_id: Symbol,
+    //     data: Bytes,
+    // ) -> BytesN<32> {
+    //     let nonce: u64 = env.storage().instance().get(&CURRENT_NONCE).unwrap() + 1;
         
-        let mut hasher = Sha256::new();
-        hasher.input(&env.current_contract_address().into_val(&env));
-        hasher.input(&from.into_val(&env));
-        hasher.input(&env.ledger().sequence().to_be_bytes());
-        hasher.input(&dapp_id.to_be_bytes());
-        hasher.input(&to.into_val(&env));
-        hasher.input(&to_chain_id.into_val(&env));
-        hasher.input(&nonce.to_be_bytes());
-        hasher.input(&data);
+    //     let mut hasher = Sha256::new();
+    //     hasher.input(&env.current_contract_address().into_val(&env));
+    //     hasher.input(&from.into_val(&env));
+    //     hasher.input(&env.ledger().sequence().to_be_bytes());
+    //     hasher.input(&dapp_id.to_be_bytes());
+    //     hasher.input(&to.into_val(&env));
+    //     hasher.input(&to_chain_id.into_val(&env));
+    //     hasher.input(&nonce.to_be_bytes());
+    //     hasher.input(&data);
         
-        BytesN::from_array(&env, &hasher.result())
-    }
+    //     BytesN::from_array(&env, &hasher.result())
+    // }
 }

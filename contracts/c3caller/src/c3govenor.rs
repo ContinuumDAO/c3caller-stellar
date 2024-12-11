@@ -38,13 +38,13 @@ impl C3Governor {
     // Get proposals storage
     fn get_proposal(env: &Env, nonce: BytesN<32>) -> Option<Proposal> {
         let key = DataKey::Proposal(nonce);
-        env.storage().instance().get(&key)
+        env.storage().persistent().get(&key)
     }
 
     // Save proposal
     fn save_proposal(env: &Env, nonce: BytesN<32>, proposal: &Proposal) {
         let key = DataKey::Proposal(nonce);
-        env.storage().instance().set(&key, proposal);
+        env.storage().persistent().set(&key, proposal);
     }
 
     // Get chain ID (in Stellar, this would be the network passphrase or identifier)

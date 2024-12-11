@@ -178,6 +178,7 @@ impl C3Caller {
         Self::check_operator(&env);
         Self::check_not_paused(&env);
 
+        
         if message.data.len() == 0 { 
             panic!("C3Caller: empty calldata"); 
         }
@@ -220,6 +221,7 @@ impl C3Caller {
                  });
         
 
+    
         
     }
 }

@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod test {
+    use soroban_sdk::vec;
+
     use crate::c3gov_client::C3GovClient;
 
     use super::*;

@@ -33,7 +33,7 @@ pub struct C3Caller;
 #[contractimpl]
 impl C3Caller {
     // Initialize contract
-    pub fn initialize( env: Env,uuid_keeper: Address) {
+    pub fn c3Caller_init( env: Env,uuid_keeper: Address) {
 
 
         //save uuid keeper contract address in storage

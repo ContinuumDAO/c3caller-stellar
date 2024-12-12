@@ -19,7 +19,7 @@ pub struct C3GovClient;
 #[contractimpl]
 impl C3GovClient {
     // Initialize contract
-    pub fn initialize(env: Env, gov: Address) {
+    pub fn gov_init(env: Env, gov: Address) {
         if !env.storage().persistent().has(&INITIALIZED) {
            
         

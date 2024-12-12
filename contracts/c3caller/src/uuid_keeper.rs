@@ -22,7 +22,7 @@ impl C3UUIDKeeper {
     pub fn initialize(env: Env,c3gov_contract_id:Address ,gov: Address) {
 
         let admin_client = C3GovClientClient::new(&env,&c3gov_contract_id);
-        admin_client.initialize(&gov);
+        admin_client.gov_init(&gov);
         // Initialize current nonce
         env.storage().persistent().set(&CURRENT_NONCE, &0u64);
        env.storage().persistent().set(&C3GOV_CLIENT, &c3gov_contract_id);

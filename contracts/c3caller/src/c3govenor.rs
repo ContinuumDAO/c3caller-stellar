@@ -25,7 +25,7 @@ pub struct C3Governor;
 #[contractimpl]
 impl C3Governor {
     // Initialize contract
-    pub fn initialize(env: Env, admin: Address) {
+    pub fn c3gov_init(env: Env, admin: Address) {
         env.storage().instance().set(&ADMIN, &admin);
     }
 

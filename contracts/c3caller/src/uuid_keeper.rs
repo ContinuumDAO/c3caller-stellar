@@ -2,13 +2,16 @@ use soroban_sdk::{
     contract, contractimpl, log, symbol_short, xdr::ToXdr, Address, Bytes, BytesN, Env, IntoVal, Map, String, Symbol, TryFromVal, Vec
 };
 
+use crate::c3gov_client::{C3GovClient, C3GovClientClient};
+
 
 // Constants for storage
-const ADMIN: Symbol = symbol_short!("ADMIN");
-const COMPLETED_SWAPIN: Symbol = symbol_short!("COMP_SWAP");
-const UUID_TO_NONCE: Symbol = symbol_short!("UUIDNONCE");
-const CURRENT_NONCE: Symbol = symbol_short!("CUR_NONCE");
-const OPERATOR: Symbol = symbol_short!("OPERATOR");
+pub const ADMIN: Symbol = symbol_short!("ADMIN");
+pub const COMPLETED_SWAPIN: Symbol = symbol_short!("COMP_SWAP");
+pub const UUID_TO_NONCE: Symbol = symbol_short!("UUIDNONCE");
+pub const CURRENT_NONCE: Symbol = symbol_short!("CUR_NONCE");
+pub const OPERATOR: Symbol = symbol_short!("OPERATOR");
+pub const C3GOV_CLIENT:Symbol = symbol_short!("GOV_ADDR");
 
 #[contract]
 pub struct C3UUIDKeeper;
@@ -16,32 +19,31 @@ pub struct C3UUIDKeeper;
 #[contractimpl]
 impl C3UUIDKeeper {
     // Initialize contract
-    pub fn initialize(env: Env, admin: Address) {
-        // Set admin
-        env.storage().persistent().set(&ADMIN, &admin);
+    pub fn initialize(env: Env,c3gov_contract_id:Address ,gov: Address) {
+
+        let admin_client = C3GovClientClient::new(&env,&c3gov_contract_id);
+        admin_client.initialize(&gov);
         // Initialize current nonce
         env.storage().persistent().set(&CURRENT_NONCE, &0u64);
-        // Set admin as initial operator
-        env.storage().persistent().set(&OPERATOR, &admin);
+       env.storage().persistent().set(&C3GOV_CLIENT, &c3gov_contract_id);
+
     }
 
-    // Helper function to check if caller is admin
-    fn check_admin(env: &Env) {
-        let admin: Address = env.storage().persistent().get(&ADMIN).unwrap();
-        // if admin != env.invoker() {
-        //     panic!("not authorized");
-        // }
-        admin.require_auth();
-    }
+   
 
     // Helper function to check if caller is operator
-    fn check_operator(env: &Env) {
-        let operator: Address = env.storage().persistent().get(&OPERATOR).unwrap();
-        // if operator != env.invoker() {
-        //     panic!("not operator");
-        // }
-        operator.require_auth();
+    fn check_operator(env: &Env,caller:Address) {
+        let c3gov_contract_id:Address = env.storage().persistent().get(&C3GOV_CLIENT).unwrap();
+        let gov_client = C3GovClientClient::new(&env,&c3gov_contract_id);
+        gov_client.check_operator(&caller);
     }
+
+    //helper function to check if caller is gov
+     fn check_gov(env: &Env){
+        let c3gov_contract_id:Address = env.storage().persistent().get(&C3GOV_CLIENT).unwrap();
+        let gov_client = C3GovClientClient::new(&env,&c3gov_contract_id);
+        gov_client.check_gov();
+     }
 
     // Get storage maps
     fn get_completed_swapin(env: &Env) -> Map<BytesN<32>, bool> {
@@ -74,14 +76,14 @@ impl C3UUIDKeeper {
     }
 
     pub fn revoke_swapin(env: Env, uuid: BytesN<32>) {
-        Self::check_admin(&env);
+        Self::check_gov(&env);
         let mut completed_swapin = Self::get_completed_swapin(&env);
         completed_swapin.set(uuid, false);
         env.storage().persistent().set(&COMPLETED_SWAPIN, &completed_swapin);
     }
 
-    pub fn register_uuid(env: Env, uuid: BytesN<32>) {
-        Self::check_operator(&env);
+    pub fn register_uuid(env: Env,caller:Address, uuid: BytesN<32>) {
+        Self::check_operator(&env,caller);
         if Self::is_completed(env.clone(), uuid.clone()) {
             panic!("UUID is already completed");
         }
@@ -92,16 +94,19 @@ impl C3UUIDKeeper {
 
     pub fn gen_uuid(
         env: Env,
+        caller:Address,
         dapp_id: u64,
         to: String,
         to_chain_id: String,
         data: Bytes,
     ) -> BytesN<32> {
-        Self::check_operator(&env);
+        
+        Self::check_operator(&env, caller.clone());
         let nonce = Self::increase_nonce(&env);
           
           let mut  concat = Bytes::new(&env);
           concat.append(&env.current_contract_address().to_xdr(&env));
+          concat.append(&caller.to_xdr(&env));
           concat.append(&env.ledger().network_id().to_xdr(&env));
           concat.append(&dapp_id.to_be_bytes().to_xdr(&env));
           concat.append(&to.to_xdr(&env));

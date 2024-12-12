@@ -31,30 +31,30 @@ impl C3GovClient {
         env.storage().persistent().set(&OPERATORS, &Vec::<Address>::new(&env));
 
         // Emit initialization event
-        env.events().publish(
-            (EVENT_APPLY_GOV,),
-            (
-                Address::from_string("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"),
-                gov,
-                env.ledger().timestamp(),
-            ),
-        );
+        // env.events().publish(
+        //     (EVENT_APPLY_GOV,),
+        //     (
+        //         Address::from_string("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"),
+        //         gov,
+        //         env.ledger().timestamp(),
+        //     ),
+        // );
     }
 
     // Helper functions for authorization checks
-    fn check_gov(env: &Env) {
+    pub fn check_gov(env: &Env) {
         let gov: Address = env.storage().persistent().get(&GOV).unwrap();
         gov.require_auth();
     }
 
-    fn check_operator(env: &Env) {
+    pub fn check_operator(env: &Env, caller:Address) {
         let gov: Address = env.storage().persistent().get(&GOV).unwrap();
         let operators: Vec<Address> = env.storage().persistent().get(&OPERATORS).unwrap();
-        let caller = env.invoker();
-
+       
         if caller != gov && !operators.contains(&caller) {
             panic!("C3Gov: only Operator");
         }
+        caller.require_auth();
     }
 
     // Governance functions
@@ -136,15 +136,15 @@ impl C3GovClient {
         }
 
         // Remove operator
-        let index = operators.iter()
-            .position(|x| *x == op)
-            .expect("Operator not found");
+        // let index = operators.iter()
+        //     .position(|x| *x == op)
+        //     .expect("Operator not found");
         
         // Replace with last element and pop
         let last_idx = operators.len() - 1;
-        if index != last_idx {
-            operators.set(index, operators.get(last_idx).unwrap());
-        }
+        // if index != last_idx {
+        //     operators.set(index, operators.get(last_idx).unwrap());
+        // }
         operators.pop_back();
 
         // Update storage

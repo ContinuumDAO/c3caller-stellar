@@ -38,13 +38,14 @@ impl C3Governor {
     // Get proposals storage
     fn get_proposal(env: &Env, nonce: BytesN<32>) -> Option<Proposal> {
         let key = DataKey::Proposal(nonce);
-        env.storage().persistent().get(&key)
+        //env.storage().persistent().get(&key)
+        None
     }
 
     // Save proposal
     fn save_proposal(env: &Env, nonce: BytesN<32>, proposal: &Proposal) {
         let key = DataKey::Proposal(nonce);
-        env.storage().persistent().set(&key, proposal);
+        // env.storage().persistent().set(&key, proposal);
     }
 
     // Get chain ID (in Stellar, this would be the network passphrase or identifier)
@@ -75,10 +76,10 @@ impl C3Governor {
         Self::save_proposal(&env, nonce.clone(), &proposal);
 
         // Emit event
-        env.events().publish(
-            (EVENT_NEW_PROPOSAL, nonce.clone()),
-            Vec::new(&env)
-        );
+        // env.events().publish(
+        //     (EVENT_NEW_PROPOSAL, nonce.clone()),
+        //     Vec::new(&env)
+        // );
 
         // Execute governance action
         Self::c3_gov(&env, nonce, 0);
@@ -115,10 +116,10 @@ impl C3Governor {
         Self::save_proposal(&env, nonce.clone(), &proposal);
 
         // Emit event
-        env.events().publish(
-            (EVENT_NEW_PROPOSAL, nonce),
-            Vec::new(&env)
-        );
+        // env.events().publish(
+        //     (EVENT_NEW_PROPOSAL, nonce),
+        //     Vec::new(&env)
+        // );
     }
 
     // Execute governance action

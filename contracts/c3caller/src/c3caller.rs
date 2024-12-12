@@ -1,5 +1,6 @@
 use soroban_sdk::{
-    contract, contractimpl, log, symbol_short, vec, Address, Bytes, BytesN, Env, FromVal, IntoVal, Map, String, Symbol, TryFromVal, Val, Vec
+    contract, contractimpl, log, symbol_short, vec, Address, Bytes, BytesN, Env, FromVal, IntoVal, Map, String, Symbol, TryFromVal, Val, Vec,
+    contracttype
 };
 
 use crate::events::{LogC3CallEvent, LogExecCallEvent};
@@ -12,7 +13,8 @@ const CONTEXT: Symbol = symbol_short!("CONTEXT");
 
 
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
+#[contracttype]
 pub struct C3StellarMessage {
     to: Address,
     data: Vec<Val>,

@@ -1,11 +1,9 @@
 use soroban_sdk::{
-    contract, contractimpl, symbol_short,
-    Address, Env, Symbol, Vec,
-    IntoVal, TryFromVal
+    contract, contractimpl, symbol_short, vec, Address, Env, IntoVal, String, Symbol, TryFromVal, Vec
 };
 
 // Storage keys
-const GOV: Symbol = symbol_short!("GOV");
+pub const GOV: Symbol = symbol_short!("GOV");
 const PENDING_GOV: Symbol = symbol_short!("PEND_GOV");
 const OPERATORS: Symbol = symbol_short!("OPS");
 const INITIALIZED: Symbol = symbol_short!("INIT");
@@ -22,29 +20,31 @@ pub struct C3GovClient;
 impl C3GovClient {
     // Initialize contract
     pub fn initialize(env: Env, gov: Address) {
-        if env.storage().persistent().has(&INITIALIZED) {
-            panic!("already initialized");
-        }
+        if !env.storage().persistent().has(&INITIALIZED) {
+           
+        
         
         env.storage().persistent().set(&INITIALIZED, &true);
         env.storage().persistent().set(&GOV, &gov);
         env.storage().persistent().set(&OPERATORS, &Vec::<Address>::new(&env));
 
         // Emit initialization event
-        // env.events().publish(
-        //     (EVENT_APPLY_GOV,),
-        //     (
-        //         Address::from_string("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"),
-        //         gov,
-        //         env.ledger().timestamp(),
-        //     ),
-        // );
+        env.events().publish(
+            (EVENT_APPLY_GOV,),
+            (
+                "",
+                gov,
+                env.ledger().timestamp(),
+            ),
+        );
+    }
     }
 
     // Helper functions for authorization checks
-    pub fn check_gov(env: &Env) {
+    pub fn check_gov(env: &Env)->Address {
         let gov: Address = env.storage().persistent().get(&GOV).unwrap();
         gov.require_auth();
+        gov
     }
 
     pub fn check_operator(env: &Env, caller:Address) {
@@ -101,7 +101,7 @@ impl C3GovClient {
             panic!("C3Caller: Operator is null address");
         }
 
-        let mut operators: Vec<Address> = env.storage().persistent().get(&OPERATORS).unwrap();
+        let mut operators: Vec<Address> = env.storage().persistent().get(&OPERATORS).unwrap_or(Vec::new(env));
         
         if operators.contains(&op) {
             panic!("C3Caller: Operator already exists");

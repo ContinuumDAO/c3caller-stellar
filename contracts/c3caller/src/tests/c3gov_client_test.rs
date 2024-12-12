@@ -1,107 +1,106 @@
-// #[cfg(test)]
-// mod test {
-//     use soroban_sdk::vec;
+use soroban_sdk::testutils::{AuthorizedFunction, AuthorizedInvocation, LedgerInfo};
+#[cfg(test)]
 
-//     use crate::c3gov_client::C3GovClient;
+    use soroban_sdk::{
+        testutils::{Address as _, Ledger},
+        Address, Env, BytesN,
+    };
 
-//     use super::*;
+use crate::c3gov_client::{C3GovClient, C3GovClientClient};
+    
 
-//     #[test]
-//     fn test_initialization() {
-//         let env = Env::default();
-//         let contract_id = env.register_test_contract(None, C3GovClient);
+
+    // Test helpers
+    fn create_test_env() -> Env {
+        let env = Env::default();
+        env.mock_all_auths();
+        // Set current ledger info
+       env
+    }
+
+    fn create_addresses(env: &Env) -> (Address, Address, Address) {
+        let gov = Address::generate(&env);
+        let operator = Address::generate(&env);
+        let user = Address::generate(&env);
+        (gov, operator, user)
+    }
+
+    #[test]
+    fn test_gov_initialization() {
+        let env = create_test_env();
+        let (gov, _, _) = create_addresses(&env);
         
-//         let gov = Address::generate(&env);
+        let contract_id = env.register_contract(None, C3GovClient);
+        let client = C3GovClientClient::new(&env, &contract_id);
         
-//         // Initialize contract
-//         env.invoke_contract::<()>(
-//             &contract_id,
-//             "initialize",
-//             vec![&env, gov.into_val(&env)],
-//         );
-
-//         // Verify gov is set
-//         let stored_gov: Address = env.invoke_contract(
-//             &contract_id,
-//             "get_gov",
-//             vec![&env],
-//         );
-//         assert_eq!(stored_gov, gov);
-//     }
-
-//     #[test]
-//     fn test_governance_change() {
-//         let env = Env::default();
-//         let contract_id = env.register_test_contract(None, C3GovClient);
+        client.initialize(&gov);
         
-//         let initial_gov = Address::generate(&env);
-//         let new_gov = Address::generate(&env);
+        assert_eq!(client.get_gov(), gov);
+        assert_eq!(client.get_pending_gov(), None);
+       // let operators = client.get_all_operators();
+      //  assert_eq!(operators.len(), 0);
+    }
+
+ 
+
+    #[test]
+    fn test_add_operator() {
+        let env = create_test_env();
+        let (gov, operator, _) = create_addresses(&env);
         
-//         // Initialize
-//         env.invoke_contract::<()>(
-//             &contract_id,
-//             "initialize",
-//             vec![&env, initial_gov.into_val(&env)],
-//         );
-
-//         // Change governance
-//         env.as_contract(&contract_id, || {
-//             C3GovClient::change_gov(env.clone(), new_gov.clone());
-//         });
-
-//         // Apply governance change
-//         env.as_contract(&contract_id, || {
-//             C3GovClient::apply_gov(env.clone());
-//         });
-
-//         // Verify new governance
-//         let final_gov: Address = env.invoke_contract(
-//             &contract_id,
-//             "get_gov",
-//             vec![&env],
-//         );
-//         assert_eq!(final_gov, new_gov);
-//     }
-
-//     #[test]
-//     fn test_operator_management() {
-//         let env = Env::default();
-//         let contract_id = env.register_test_contract(None, C3GovClient);
+        let contract_id = env.register_contract(None, C3GovClient);
+        let client = C3GovClientClient::new(&env, &contract_id);
         
-//         let gov = Address::generate(&env);
-//         let operator = Address::generate(&env);
+
+        env.mock_all_auths();
+
+        client.initialize(&gov);
         
-//         // Initialize
-//         env.invoke_contract::<()>(
-//             &contract_id,
-//             "initialize",
-//             vec![&env, gov.into_val(&env)],
-//         );
+    
 
-//         // Add operator
-//         env.as_contract(&contract_id, || {
-//             C3GovClient::add_operator(env.clone(), operator.clone());
-//         });
+        client.add_operator(&operator);
+        
+       // assert!(client.is_operator(&operator));
+       // let operators = client.get_all_operators();
+       // assert_eq!(operators.len(), 1);
+       // assert_eq!(operators.get(0), operator);
+    }
 
-//         // Verify operator is added
-//         let is_op: bool = env.invoke_contract(
-//             &contract_id,
-//             "is_operator",
-//             vec![&env, operator.into_val(&env)],
-//         );
-//         assert!(is_op);
+    #[test]
+    fn test_governance_change() {
+        let env = create_test_env();
+        let (gov, _, user) = create_addresses(&env);
+        
+        let contract_id = env.register_contract(None, C3GovClient);
+        let client = C3GovClientClient::new(&env, &contract_id);
+        
+        client.initialize(&gov);
+        
+        // Change governance
+        client.change_gov(&user);
+        assert_eq!(client.get_pending_gov(), Some(user.clone()));
+        
+        // Apply governance change
+        client.apply_gov();
+        assert_eq!(client.get_gov(), user);
+        assert_eq!(client.get_pending_gov(), None);
+    }
 
-//         // Revoke operator
-//         env.as_contract(&contract_id, || {
-//             C3GovClient::revoke_operator(env.clone(), operator.clone());
-//         });
-
-//         // Verify operator is removed
-//         let is_op: bool = env.invoke_contract(
-//             &contract_id,
-//             "is_operator",
-//             vec![&env, operator.into_val(&env)],
-//         );
-//         assert!(!is_op);
-//     }
-// }
+    #[test]
+    fn test_revoke_operator() {
+        let env = create_test_env();
+        let (gov, operator, _) = create_addresses(&env);
+        
+        let contract_id = env.register_contract(None, C3GovClient);
+        let client = C3GovClientClient::new(&env, &contract_id);
+        
+        client.initialize(&gov);
+        
+        // Add operator
+        client.add_operator(&operator);
+        assert!(client.is_operator(&operator));
+        
+        // Revoke operator
+        client.revoke_operator(&operator);
+        assert!(!client.is_operator(&operator));
+    }

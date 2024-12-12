@@ -35,14 +35,18 @@ impl C3UUIDKeeper {
     fn check_operator(env: &Env,caller:Address) {
         let c3gov_contract_id:Address = env.storage().persistent().get(&C3GOV_CLIENT).unwrap();
         let gov_client = C3GovClientClient::new(&env,&c3gov_contract_id);
+        caller.require_auth();
         gov_client.check_operator(&caller);
     }
 
     //helper function to check if caller is gov
      fn check_gov(env: &Env){
-        let c3gov_contract_id:Address = env.storage().persistent().get(&C3GOV_CLIENT).unwrap();
-        let gov_client = C3GovClientClient::new(&env,&c3gov_contract_id);
-        gov_client.check_gov();
+         let c3gov_contract_id:Address = env.storage().persistent().get(&C3GOV_CLIENT).unwrap();
+         let gov_client = C3GovClientClient::new(&env,&c3gov_contract_id);
+         let gov = gov_client.get_gov();
+         gov.require_auth();
+        
+        
      }
 
     // Get storage maps

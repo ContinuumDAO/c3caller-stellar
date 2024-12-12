@@ -1,174 +1,170 @@
 #[cfg(test)]
 mod test {
-    use crate::{c3gov_client::C3GovClient, uuid_keeper::{C3UUIDKeeper, C3UUIDKeeperClient, ADMIN, CURRENT_NONCE, OPERATOR}};
+    use crate::{c3gov_client::{C3GovClient, C3GovClientClient, GOV}, uuid_keeper::{C3UUIDKeeper, C3UUIDKeeperClient, ADMIN, CURRENT_NONCE, OPERATOR}};
 
     use super::*;
     use soroban_sdk::{
-        log, testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation}, Address, Bytes, BytesN, Env, IntoVal, String, Symbol
+        log, testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation, Ledger, LedgerInfo}, Address, Bytes, BytesN, Env, IntoVal, String, Symbol
     };
 
     fn create_test_env() -> Env {
-        Env::default()
+        let env = Env::default();
+     
+        // Set current ledger info
+        
+        env
     }
 
-    
-    fn create_contract(env: &Env) -> (Address, Address, C3UUIDKeeperClient) {
-        let admin = Address::generate(&env);
-       
-        let id =  env.register(C3UUIDKeeper, ());
-        let client = C3UUIDKeeperClient::new(&env, &id);
-        let c3gov_contract_id =  env.register(C3GovClient, ());
-        //client.initialize(&c3gov_contract_id,&admin);
-        
-        
-        (id, admin, client)
-    }
-
-    #[test]
-    fn test_initialize() {
-
-
-         let env = create_test_env();
+    fn create_addresses(env: &Env) -> (Address, Address, Address) {
         let gov = Address::generate(&env);
-        let contract_id = env.register( C3UUIDKeeper,());
-        let c3gov_contract_id =  env.register(C3GovClient, ());
-        let client = C3UUIDKeeperClient::new(&env, &contract_id);
-
-        client.initialize(&c3gov_contract_id,&gov);
-        
-        
-
-
-        //  env.as_contract(&contract_id, ||{
-        //       // Verify storage
-        // let stored_admin: Address = env.storage().persistent().get(&ADMIN).unwrap();
-        // let stored_nonce: u64 = env.storage().persistent().get(&CURRENT_NONCE).unwrap();
-        // let stored_operator: Address = env.storage().persistent().get(&OPERATOR).unwrap();
-
-
-        // assert_eq!(stored_admin, gov);
-        // assert_eq!(stored_nonce, 0);
-        // assert_eq!(stored_operator, gov);
-            
-        //  })
-        
-
+        let operator = Address::generate(&env);
+        let user = Address::generate(&env);
+        (gov, operator, user)
     }
 
     #[test]
-    fn test_register_uuid() {
-        // let env = create_test_env();
-        // let (contract_id, admin) = create_contract(&env);
-        
-        // // Generate a test UUID
-        // let test_uuid = BytesN::from_array(&env, &[1u8; 32]);
-        
-        // // Register UUID as operator (admin is operator by default)
-        // env.as_contract(&contract_id, || {
-        //     admin.require_auth();
-        //     client.register_uuid(test_uuid.clone());
-        // });
-
-        // // Verify UUID is registered
-        // assert!(client.is_completed(test_uuid.clone()));
-    }
-
-    #[test]
-    //#[should_panic(expected = "UUID is already completed")]
-    fn test_register_uuid_already_completed() {
-        // let env = create_test_env();
-        // let (contract_id, admin, client) = create_contract(&env);
-        
-        // let test_uuid = BytesN::from_array(&env, &[1u8; 32]);
-        
-        // // Register UUID first time
-        // env.as_contract(&contract_id, || {
-        //     admin.require_auth();
-        //     client.register_uuid(test_uuid.clone());
-        // });
-
-        // // Try to register same UUID again
-        // env.as_contract(&contract_id, || {
-        //     admin.require_auth();
-        //     client.register_uuid(test_uuid.clone());
-        // });
-    }
-
-    #[test]
-    fn test_gen_uuid() {
-
-        
+    fn test_uuid_keeper_initialization() {
         let env = create_test_env();
-        let (contract_id, admin, client) = create_contract(&env);
+        let (gov, _, _) = create_addresses(&env);
         
-        // let dapp_id = 1u64;
-        // let to = String::from_str(&env, "destination");
-        // let to_chain_id = String::from_str(&env, "chain1");
-        // let data = Bytes::from_slice(&env, &[1, 2, 3]);
+        // Deploy contracts
+        let gov_contract_id = env.register_contract(None, C3GovClient {});
+        let uuid_keeper_id = env.register_contract(None, C3UUIDKeeper {});
         
-        // let c3gov_contract_id =  env.register(C3GovClient, ());
+        let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
+        uuid_keeper.initialize(&gov_contract_id, &gov);
+    }
 
-        // client.initialize(&c3gov_contract_id, &admin);
+    #[test]
+    fn test_uuid_generation() {
+        let env = create_test_env();
+        let (gov, operator, _) = create_addresses(&env);
         
-        //  let uuid = client.gen_uuid(&admin,&dapp_id, &to, &to_chain_id, &data);
-        // assert!(client.is_uuid_exist(&uuid));
-        // Generate UUID as operator
-        // env.as_contract(&contract_id, || {
-        //     admin.require_auth();
-        //     let uuid = //client.gen_uuid(dapp_id, to.clone(), to_chain_id.clone(), data.clone());
+        // Deploy and initialize contracts
+        let gov_contract_id = env.register_contract(None, C3GovClient {});
+        let uuid_keeper_id = env.register_contract(None, C3UUIDKeeper {});
+        
+        let gov_client = C3GovClientClient::new(&env, &gov_contract_id);
+        let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
+        
+        gov_client.initialize(&gov);
+        env.mock_all_auths();
+        uuid_keeper.initialize(&gov_contract_id, &gov);
+        
+        // Generate UUID
+
+      let uuid = uuid_keeper.gen_uuid(
+        &gov,
+        &1u64,
+        &"destination".into_val(&env),
+        &"chain_1".into_val(&env),
+        &Bytes::new(&env),
+    );
+
+       assert!(uuid_keeper.is_uuid_exist(&uuid));
+       assert!(!uuid_keeper.is_completed(&uuid));
+    }
+
+    #[test]
+    fn test_uuid_registration() {
+        let env = create_test_env();
+        let (gov, operator, _) = create_addresses(&env);
+        
+        // Deploy and initialize contracts
+        let gov_contract_id = env.register_contract(None, C3GovClient {});
+        let uuid_keeper_id = env.register_contract(None, C3UUIDKeeper {});
+        
+        let gov_client = C3GovClientClient::new(&env, &gov_contract_id);
+        let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
+        
+        gov_client.initialize(&gov);
+        env.mock_all_auths();
+        uuid_keeper.initialize(&gov_contract_id, &gov);
+        
+
+        let uuid = uuid_keeper.gen_uuid(
+                    &gov,
+                    &1u64,
+                    &"destination".into_val(&env),
+                    &"chain_1".into_val(&env),
+                    &Bytes::new(&env),
+                );
+        
+        
+        uuid_keeper.register_uuid(&gov, &uuid);
+
+      assert!(uuid_keeper.is_completed(&uuid));
+      
+    }
+
+    #[test]
+    #[should_panic(expected = "UUID is already completed")]
+    fn test_double_registration() {
+        let env = create_test_env();
+        let (gov, operator, _) = create_addresses(&env);
+        
+        // Deploy and initialize contracts
+        let gov_contract_id = env.register_contract(None, C3GovClient {});
+        let uuid_keeper_id = env.register_contract(None, C3UUIDKeeper {});
+        
+        let gov_client = C3GovClientClient::new(&env, &gov_contract_id);
+        let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
+        
+        gov_client.initialize(&gov);
+        env.mock_all_auths();
+        uuid_keeper.initialize(&gov_contract_id, &gov);
+    
+        // Generate and register UUID twice
+        
+            let uuid = uuid_keeper.gen_uuid(
+                &gov,
+                &1u64,
+                &"destination".into_val(&env),
+                &"chain_1".into_val(&env),
+                &Bytes::new(&env),
+            );
             
-        //     // Verify UUID is registered in uuid_to_nonce mapping
-           
-        // });
+            uuid_keeper.register_uuid(&gov, &uuid);
+            uuid_keeper.register_uuid(&gov, &uuid); // Should panic
+       
     }
 
     #[test]
     fn test_revoke_swapin() {
-        // let env = create_test_env();
-        // let (contract_id, admin, client) = create_contract(&env);
+        let env = create_test_env();
+        let (gov, operator, _) = create_addresses(&env);
         
-        // let test_uuid = BytesN::from_array(&env, &[1u8; 32]);
+        // Deploy and initialize contracts
+        let gov_contract_id = env.register_contract(None, C3GovClient {});
+        let uuid_keeper_id = env.register_contract(None, C3UUIDKeeper {});
         
-        // // Register UUID first
-        // env.as_contract(&contract_id, || {
-        //     admin.require_auth();
-        //     client.register_uuid(test_uuid.clone());
-        // });
-
-        // // Verify it's completed
-        // assert!(client.is_completed(test_uuid.clone()));
-
-        // // Revoke the swapin
-        // env.as_contract(&contract_id, || {
-        //     admin.require_auth();
-        //     client.revoke_swapin(test_uuid.clone());
-        // });
-
-        // // Verify it's no longer completed
-        // assert!(!client.is_completed(test_uuid));
+        let gov_client = C3GovClientClient::new(&env, &gov_contract_id);
+        let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
+        
+        gov_client.initialize(&gov);
+        env.mock_all_auths();
+        uuid_keeper.initialize(&gov_contract_id, &gov);
+        
+        // Add operator
+        gov_client.add_operator(&operator);
+        
+        // Generate and register UUID
+        let uuid = uuid_keeper.gen_uuid(
+            &operator,
+            &1u64,
+            &"destination".into_val(&env),
+            &"chain_1".into_val(&env),
+            &Bytes::new(&env),
+        );
+           
+            
+     uuid_keeper.register_uuid(&operator, &uuid);
+      
+        // // Revoke swapin
+      uuid_keeper.revoke_swapin(&uuid);
+        
+     assert!(!uuid_keeper.is_completed(&uuid));
     }
-
-    #[test]
-    //#[should_panic(expected = "UUID already exist")]
-    fn test_gen_uuid_duplicate() {
-        // let env = create_test_env();
-        // let (contract_id, admin, client) = create_contract(&env);
-        
-        // let dapp_id = 1u64;
-        // let to = String::from_str(&env, "destination");
-        // let to_chain_id = String::from_str(&env, "chain1");
-        // let data = Bytes::from_slice(&env, &[1, 2, 3]);
-
-        // // Generate first UUID
-        // env.as_contract(&contract_id, || {
-        //     admin.require_auth();
-        //     client.gen_uuid(dapp_id, to.clone(), to_chain_id.clone(), data.clone());
-        // });
-
-        // // Try to generate same UUID again (should panic)
-        // env.as_contract(&contract_id, || {
-        //     admin.require_auth();
-        //     client.gen_uuid(dapp_id, to.clone(), to_chain_id.clone(), data.clone());
-        // });
-    }
+    
+    
 }

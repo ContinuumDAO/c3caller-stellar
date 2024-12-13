@@ -11,6 +11,17 @@ The protocol consists of several core contracts:
 - `C3UUIDKeeper`: Maintains unique identifiers for cross-chain transactions
 - `C3GovClient`: Base contract for governance functionality
 
+
+## Deployed Contracts (Testnet)
+
+### Testnet Deployment
+| Contract | Address | Explorer Link |
+|----------|---------|---------------|
+| C3Caller | CDDYZ5JJ5LRVIX34QULXAPO7K5BQLOB2INML7Z7TBNWYYWKYQRCROSNC | [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDDYZ5JJ5LRVIX34QULXAPO7K5BQLOB2INML7Z7TBNWYYWKYQRCROSNC) |
+| C3Governor |  | [View on Stellar Expert](https://testnet.stellarexpert.io/contract) |
+| C3UUIDKeeper |  | [View on Stellar Expert](https://testnet.stellarexpert.io/contract/) |
+
+
 ## Features
 - Cross-chain message passing
 - Unique transaction identifier management
@@ -67,6 +78,3 @@ stellar contract deploy \
     --source <your-secret-key> \
     --network testnet
 ```
-
-
-

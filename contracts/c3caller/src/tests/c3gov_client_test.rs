@@ -33,7 +33,7 @@ use crate::c3gov_client::{C3GovClient, C3GovClientClient};
         let contract_id = env.register_contract(None, C3GovClient);
         let client = C3GovClientClient::new(&env, &contract_id);
         
-        client.initialize(&gov);
+        client.gov_init(&gov);
         
         assert_eq!(client.get_gov(), gov);
         assert_eq!(client.get_pending_gov(), None);
@@ -54,7 +54,7 @@ use crate::c3gov_client::{C3GovClient, C3GovClientClient};
 
         env.mock_all_auths();
 
-        client.initialize(&gov);
+        client.gov_init(&gov);
         
     
 
@@ -74,7 +74,7 @@ use crate::c3gov_client::{C3GovClient, C3GovClientClient};
         let contract_id = env.register_contract(None, C3GovClient);
         let client = C3GovClientClient::new(&env, &contract_id);
         
-        client.initialize(&gov);
+        client.gov_init(&gov);
         
         // Change governance
         client.change_gov(&user);
@@ -94,7 +94,7 @@ use crate::c3gov_client::{C3GovClient, C3GovClientClient};
         let contract_id = env.register_contract(None, C3GovClient);
         let client = C3GovClientClient::new(&env, &contract_id);
         
-        client.initialize(&gov);
+        client.gov_init(&gov);
         
         // Add operator
         client.add_operator(&operator);

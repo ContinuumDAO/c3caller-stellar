@@ -1,21 +1,72 @@
-# Soroban Project
+# C3Caller - Soroban Implementation
 
-## Project Structure
+## Overview
+C3Caller  Protocol is a cross-chain communication protocol implemented on the Soroban smart contract platform for the Stellar network. 
 
-This repository uses the recommended structure for a Soroban project:
-```text
-.
-├── contracts
-│   └── hello_world
-│       ├── src
-│       │   ├── lib.rs
-│       │   └── test.rs
-│       └── Cargo.toml
-├── Cargo.toml
-└── README.md
+## Contracts
+The protocol consists of several core contracts:
+
+- `C3Caller`: Manages cross-chain calls and message passing
+- `C3Governor`: Handles protocol governance and parameter updates
+- `C3UUIDKeeper`: Maintains unique identifiers for cross-chain transactions
+- `C3GovClient`: Base contract for governance functionality
+
+## Features
+- Cross-chain message passing
+- Unique transaction identifier management
+- Governance system with operator management
+- Pausable functionality for emergency situations
+- Event logging for transaction tracking
+- Fallback mechanism for failed transactions
+
+## Prerequisites
+- Rust toolchain
+- Soroban CLI
+- Stellar network access (testnet/mainnet)
+
+## Installation
+
+1. Install Rust and Cargo
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-- New Soroban contracts can be put in `contracts`, each in their own directory. There is already a `hello_world` contract in there to get you started.
-- If you initialized this project with any other example contracts via `--with-example`, those contracts will be in the `contracts` directory as well.
-- Contracts should have their own `Cargo.toml` files that rely on the top-level `Cargo.toml` workspace for their dependencies.
-- Frontend libraries can be added to the top-level directory as well. If you initialized this project with a frontend template via `--frontend-template` you will have those files already included.
+2. Install Soroban CLI
+```bash
+cargo install --locked soroban-cli
+```
+
+3. Clone the repository
+```bash
+git clone https://github.com/your-repo/c3-protocol-soroban
+cd c3-protocol-soroban
+```
+
+4. Build the contracts
+```bash
+cargo build --target wasm32-unknown-unknown --release
+```
+
+## Testing
+Run the test suite:
+```bash
+cargo test
+```
+
+## Contract Deployment
+
+1. Build the contracts:
+```bash
+stellar contract build
+```
+
+2. Deploy to the Stellar testnet:
+```bash
+stellar contract deploy \
+    --wasm target/wasm32-unknown-unknown/release/c3caller.wasm \
+    --source <your-secret-key> \
+    --network testnet
+```
+
+
+

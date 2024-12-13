@@ -47,7 +47,7 @@ mod test {
         let gov_client = C3GovClientClient::new(&env, &gov_contract_id);
         let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
         
-        gov_client.initialize(&gov);
+        gov_client.gov_init(&gov);
         env.mock_all_auths();
         uuid_keeper.initialize(&gov_contract_id, &gov);
         
@@ -77,7 +77,7 @@ mod test {
         let gov_client = C3GovClientClient::new(&env, &gov_contract_id);
         let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
         
-        gov_client.initialize(&gov);
+        gov_client.gov_init(&gov);
         env.mock_all_auths();
         uuid_keeper.initialize(&gov_contract_id, &gov);
         
@@ -110,7 +110,7 @@ mod test {
         let gov_client = C3GovClientClient::new(&env, &gov_contract_id);
         let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
         
-        gov_client.initialize(&gov);
+        gov_client.gov_init(&gov);
         env.mock_all_auths();
         uuid_keeper.initialize(&gov_contract_id, &gov);
     
@@ -141,7 +141,7 @@ mod test {
         let gov_client = C3GovClientClient::new(&env, &gov_contract_id);
         let uuid_keeper = C3UUIDKeeperClient::new(&env, &uuid_keeper_id);
         
-        gov_client.initialize(&gov);
+        gov_client.gov_init(&gov);
         env.mock_all_auths();
         uuid_keeper.initialize(&gov_contract_id, &gov);
         

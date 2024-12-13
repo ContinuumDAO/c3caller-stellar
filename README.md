@@ -38,8 +38,8 @@ cargo install --locked soroban-cli
 
 3. Clone the repository
 ```bash
-git clone https://github.com/your-repo/c3-protocol-soroban
-cd c3-protocol-soroban
+git clone https://github.com/ContinuumDAO/c3caller-stellar
+cd c3caller-stellar
 ```
 
 4. Build the contracts

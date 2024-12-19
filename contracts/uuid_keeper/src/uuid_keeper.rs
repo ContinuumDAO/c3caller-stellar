@@ -12,6 +12,13 @@ pub const UUID_TO_NONCE: Symbol = symbol_short!("UUIDNONCE");
 pub const CURRENT_NONCE: Symbol = symbol_short!("CUR_NONCE");
 pub const OPERATOR: Symbol = symbol_short!("OPERATOR");
 pub const C3GOV_CLIENT:Symbol = symbol_short!("GOV_ADDR");
+const INITIALIZED: Symbol = symbol_short!("INIT");
+
+mod C3GovClient {
+    soroban_sdk::contractimport!(
+        file ="/Users/davidkathoh/projects/c3caller/target/wasm32-unknown-unknown/release/c3gov_client.wasm"
+    );
+}
 
 #[contract]
 pub struct C3UUIDKeeper;
@@ -21,20 +28,23 @@ impl C3UUIDKeeper {
     // Initialize contract
     pub fn initialize(env: Env,c3gov_contract_id:Address ,gov: Address) {
 
-        let admin_client = C3GovClientClient::new(&env,&c3gov_contract_id);
-        admin_client.gov_init(&gov);
+        if !env.storage().persistent().has(&INITIALIZED) {
+            env.storage().persistent().set(&INITIALIZED, &true);
+
+        let admin_client = C3GovClient::Client::new(&env,&c3gov_contract_id);
+         admin_client.gov_init(&gov);
         // Initialize current nonce
         env.storage().persistent().set(&CURRENT_NONCE, &0u64);
        env.storage().persistent().set(&C3GOV_CLIENT, &c3gov_contract_id);
 
     }
-
+    }
    
 
     // Helper function to check if caller is operator
     fn check_operator(env: &Env,caller:Address) {
         let c3gov_contract_id:Address = env.storage().persistent().get(&C3GOV_CLIENT).unwrap();
-        let gov_client = C3GovClientClient::new(&env,&c3gov_contract_id);
+        let gov_client = C3GovClient::Client::new(&env,&c3gov_contract_id);
         caller.require_auth();
         gov_client.check_operator(&caller);
     }
@@ -42,7 +52,7 @@ impl C3UUIDKeeper {
     //helper function to check if caller is gov
      fn check_gov(env: &Env){
          let c3gov_contract_id:Address = env.storage().persistent().get(&C3GOV_CLIENT).unwrap();
-         let gov_client = C3GovClientClient::new(&env,&c3gov_contract_id);
+        let gov_client = C3GovClient::Client::new(&env,&c3gov_contract_id);
          let gov = gov_client.get_gov();
          gov.require_auth();
         

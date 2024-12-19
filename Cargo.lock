@@ -133,6 +133,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "c3gov_client"
+version = "0.1.0"
+
+[[package]]
 name = "cc"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1295,6 +1299,13 @@ name = "unicode-ident"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83"
+
+[[package]]
+name = "uuid_keeper"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
 
 [[package]]
 name = "version_check"

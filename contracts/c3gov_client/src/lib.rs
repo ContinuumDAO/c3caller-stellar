@@ -1,3 +1,4 @@
+#![no_std]
 use soroban_sdk::{
     contract, contractimpl, symbol_short, vec, Address, Env, IntoVal, String, Symbol, TryFromVal, Vec
 };

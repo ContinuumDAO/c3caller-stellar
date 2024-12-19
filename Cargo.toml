@@ -1,7 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
-  "contracts/*",
+  "contracts/c3caller",
+  "contracts/c3gov_client",
+  "contracts/uuid_keeper",
 ]
 
 [workspace.dependencies]

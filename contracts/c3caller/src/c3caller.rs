@@ -10,9 +10,15 @@ const ADMIN: Symbol = symbol_short!("ADMIN");
 const UUID_KEEPER: Symbol = symbol_short!("UUID_KEEP");
 const PAUSED: Symbol = symbol_short!("PAUSED");
 const CONTEXT: Symbol = symbol_short!("CONTEXT");
+const INITIALIZED: Symbol = symbol_short!("INIT");
+pub const C3GOV_CLIENT:Symbol = symbol_short!("GOV_ADDR");
 
 
-
+mod C3GovClient {
+    soroban_sdk::contractimport!(
+        file ="/Users/davidkathoh/projects/c3caller/target/wasm32-unknown-unknown/release/c3gov_client.wasm"
+    );
+}
 #[derive(Clone,Debug)]
 #[contracttype]
 pub struct C3StellarMessage {
@@ -33,16 +39,19 @@ pub struct C3Caller;
 #[contractimpl]
 impl C3Caller {
     // Initialize contract
-    pub fn c3Caller_init( env: Env,uuid_keeper: Address) {
+    pub fn c3Caller_init( env: Env,uuid_keeper: Address,c3gov_contract_id:Address) {
 
 
         //save uuid keeper contract address in storage
         // call initGov from GovClient contract by passing the person who called the contract as admin
+        if !env.storage().persistent().has(&INITIALIZED) {
+            env.storage().persistent().set(&INITIALIZED, &true);
        
         env.storage().persistent().set(&UUID_KEEPER, &uuid_keeper);
         env.storage().persistent().set(&PAUSED, &false);
+        env.storage().persistent().set(&C3GOV_CLIENT, &c3gov_contract_id);
         
-        
+        }
     }
 
     fn check_gov(env: &Env) {
@@ -51,11 +60,11 @@ impl C3Caller {
        //check if the caller is gov
     }
 
-    fn check_operator(env: &Env) {
-        let admin: Address = env.storage().instance().get(&ADMIN).unwrap();
-        admin.require_auth();
-        // Note: In a full implementation, we would check operator list like in C3GovClient
-        // check if he is an operator
+    fn check_operator(env: &Env,caller:Address) {
+        let c3gov_contract_id:Address = env.storage().persistent().get(&C3GOV_CLIENT).unwrap();
+        let gov_client = C3GovClient::Client::new(&env,&c3gov_contract_id);
+        caller.require_auth();
+        gov_client.check_operator(&caller);
     }
 
     fn check_not_paused(env: &Env) {
@@ -65,13 +74,13 @@ impl C3Caller {
         }
     }
 
-    pub fn pause(env: Env) {
-        Self::check_operator(&env);
+    pub fn pause(env: Env,caller:Address) {
+        Self::check_operator(&env,caller);
         env.storage().persistent().set(&PAUSED, &true);
     }
 
-    pub fn unpause(env: Env) {
-        Self::check_operator(&env);
+    pub fn unpause(env: Env,caller:Address) {
+        Self::check_operator(&env,caller);
         env.storage().persistent().set(&PAUSED, &false);
     }
 
@@ -176,8 +185,9 @@ impl C3Caller {
         dapp_id: u64,
         tx_sender: Address,
         message: C3StellarMessage,
+        caller:Address
     ) {
-        Self::check_operator(&env);
+        Self::check_operator(&env,caller);
         Self::check_not_paused(&env);
 
         

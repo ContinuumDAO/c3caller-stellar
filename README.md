@@ -17,7 +17,7 @@ The protocol consists of several core contracts:
 ### Testnet Deployment
 | Contract | Address | Explorer Link |
 |----------|---------|---------------|
-| C3Caller | CCNVAQNLK3UFIB2OMUPL2M5Q5ROYTYRLUWWGKLGOVH5RUCKG4XWQUU5Z | [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CCNVAQNLK3UFIB2OMUPL2M5Q5ROYTYRLUWWGKLGOVH5RUCKG4XWQUU5Z) |
+| C3Caller | CBOFLDVEWOLHPTBPJYKLQ6M4SSINDUYYNKRTDLNEM7CGV6CS4H3PESXT | [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CBOFLDVEWOLHPTBPJYKLQ6M4SSINDUYYNKRTDLNEM7CGV6CS4H3PESXT) |
 | C3GovClient | CCMUDKDVRHYF6UKNLO4VYHOHU77AR3C7RLCAZLV2DGQ6WLIXCU7NI4KE | [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CCMUDKDVRHYF6UKNLO4VYHOHU77AR3C7RLCAZLV2DGQ6WLIXCU7NI4KE) |
 | C3UUIDKeeper | CDTKELESUAUCMGRAYXH6MP7MPSQ6C7TCQR54OFDHOITORPTUJCMNCHUK | [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDTKELESUAUCMGRAYXH6MP7MPSQ6C7TCQR54OFDHOITORPTUJCMNCHUK) |
 
